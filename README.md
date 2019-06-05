@@ -8,7 +8,7 @@ We recommend running KIR Genotyper using the Anaconda distribution of Python-3.4
 git clone --recursive https://github.com/gaog94/kir-genotyper
 ```
 
-Then add the path to the kir-genotyper file to the path.
+Then add the path to the kir-genotyper files to the path.
 
 # Description
 KIR Genotyper is an algorithm that takes BLAST output from Whole Exome Sequencing (WXS) or Whole Genome Sequencing (WGS) reads mapping to a particular KIR gene and predicts the allelic genotype of that KIR gene in that sample.
@@ -17,9 +17,9 @@ As its input, KIR Genotyper uses nucleotide BLAST results in .csv format. Reads 
 
 The resulting read alignments are then fed into KIR Genotyper, which samples the reads with replacement and then runs an expectation maximization algorithm on each bootstrap until an arbitrary convergence threshold is attained. The resulting posterior probabilities are outputted and then averaged across bootstraps to determine final allele probability estimates.
 
-If only a single allele exceeds a set probability threshold ``t``, then we call a homozygous solution.  If two  alleles exceed a ``t``, then we call a heterozygous solution. If more than 2 alleles exceed ``t``, then we call the special null solution "No_Solution, No_Solution".
+If only a single allele exceeds a set probability threshold ``t``, then we call a homozygous solution.  If two  alleles exceed ``t``, then we call a heterozygous solution. If more than 2 alleles exceed ``t``, then we call the special null solution "No_Solution, No_Solution".
 
-Output is written to file ``\[input_filename\]\_genotype.txt``
+Output is written to file ``[input_filename]_genotype.txt``
 
 # Usage
 
