@@ -61,7 +61,8 @@ def run_EM(df, max_iter=1000, alpha=0.01):
     return compute_belief_vector(N), df0.index
 
 if __name__ == "__main__":
-    #fname = 'Workspace/KIR3DL2_blast.csv'
+#    fname = '../Workspace/KIR2DL2_blast.csv'
+#    fname = 'KIR2DS2_GenotyperResults/KIR2DS2*0010101_KIR2DS2*0010108_simreads_42_blast.csv'
     fname = sys.argv[1]
     
     # load in the file to run
@@ -74,14 +75,15 @@ if __name__ == "__main__":
     N, alleles = run_EM(df, max_iter=1000, alpha=0.0000001)
     
     # write results to file
-    outname = '_'.join(fname.split('_')[:-1]) + '_EMout.csv'
-    pd.DataFrame(N, index=alleles, columns=['p']).to_csv(outname)
+#    outname = '_'.join(fname.split('_')[:-1]) + '_EMout.csv'
+#    pd.DataFrame(N, index=alleles, columns=['p']).to_csv(outname)
     
     
-    
-    ## plot EM algorithm output in graphically appealing form
-    #plt.plot(N, 'bo')
-    #plt.xticks(range(len(alleles)), alleles, rotation=30, ha='right')
-    #plt.xlabel('Variant')
-    #plt.ylabel('Posterior Probability')
-    #plt.title('TCGA-OR-A5J2-10A; KIR3DL2', fontsize=20)
+#    # plot EM algorithm output in graphically appealing form
+#    import matplotlib.pyplot as plt
+#    plt.plot(N, 'bo')
+#    plt.xticks(range(len(alleles)), alleles, rotation=30, ha='right')
+#    plt.xlabel('Variant')
+#    plt.ylabel('Posterior Probability')
+#    plt.title('TCGA-OR-A5J2-10A; KIR3DL2', fontsize=20)
+#    plt.title('KIR2DS2_Heterozygous_Simulation', fontsize=20)
