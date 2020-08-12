@@ -5,10 +5,12 @@ Algorithm for calling KIR gene alleles from BLASTed WXS or WGS reads.
 We recommend running KIR Genotyper using the Anaconda distribution of Python-3.4 or greater. Required python packages include numpy and pandas. For visualization purposes, matplotlib, seaborn, and sklearn are required.
 
 ```
-git clone --recursive https://github.com/gaog94/kir-genotyper
+git clone --recursive https://github.com/gaog94/KIRCLE
 ```
 
-Then add the path to the kir-genotyper files to the path.
+Then add the path to the kir-genotyper files to PYTHONPATH.
+
+(((Include a part about setting up BLAST databases)))
 
 # Description
 KIR Genotyper is an algorithm that takes BLAST output from Whole Exome Sequencing (WXS) or Whole Genome Sequencing (WGS) reads mapping to a particular KIR gene and predicts the allelic genotype of that KIR gene in that sample.
@@ -24,6 +26,21 @@ Output is written to file ``[input_filename]_genotype.txt``
 # Usage
 
 ### Running Directly From Command Line
+```
+python process_single_cram.py fname.cram tag refLocations part nboot thresh alpha max_iter ncores
+```
+The following input parameters are use:
+* fname.cram is the name of the input CRAM file.
+* tag is the prefix of output files that KIRCLE will generate.
+* refLocations is the path to the reference file containing KIR genomic coordinates in either hg19 or hg38.
+* ``part`` is the number of proportion of reads bootstrapped with replacement with each iteration of the EM algorithm in KIRCLE.
+* ``nboot`` is an integer representing the number of bootstraps to conduct. 
+* ``thresh`` is the threshold used in the thresholding step.
+* ``alpha`` is the value used to set the convergence criterion for the EM algorithm.
+* ``max_iter`` is the maximum number of iterations the EM algorithm may run if convergence is not achieved.
+* ``ncores`` is the number of cores KIRCLE should allocate.
+
+Alternatively, if BLAST results are already available, KIRCLE may be run from the command line as follows:
 ```
 python genotyper.py BLAST_output.csv <n_boot>
 ```
