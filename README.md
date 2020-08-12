@@ -1,5 +1,5 @@
 # kir-genotyper
-Algorithm for calling KIR gene alleles from BLASTed WXS or WGS reads.
+Algorithm for calling KIR gene alleles from BLAST output generated from WXS or WGS reads.
 
 # Installation
 We recommend running KIR Genotyper using the Anaconda distribution of Python-3.4 or greater. Required python packages include numpy and pandas. For visualization purposes, matplotlib, seaborn, and sklearn are required.
@@ -20,6 +20,12 @@ The resulting read alignments are then fed into KIR Genotyper, which samples the
 If only a single allele exceeds a set probability threshold ``t``, then we call a homozygous solution.  If two  alleles exceed ``t``, then we call a heterozygous solution. If more than 2 alleles exceed ``t``, then we call the special null solution "No_Solution, No_Solution".
 
 Output is written to file ``[input_filename]_genotype.txt``
+
+# Diagnostics
+A diagnostics script has been packaged with this algorithm. This script ensures proper functioning of the EM algorithm, bootstrapper, and the thresholding algorithm. To run diagnostics on KIR Genotyper:
+```
+python diagnostics.py
+```
 
 # Usage
 

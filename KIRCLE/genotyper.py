@@ -27,7 +27,7 @@ def genotype_bootstrap(P, alleles, thresh=0.02):
     else:
         return ('No Solution', 'No Solution')
 
-def genotype_results(df, thresh=0.02, part=0.8, n_boot=20, max_iter=100):
+def genotype_results(df, kgene, thresh=0.02, part=0.8, n_boot=20, max_iter=100):
     '''Given BLAST results, use threshold thresh to determine if we have a
     homozygous, heterozygous, or indeterminate solution.'''
     # Ensure columns named correctly; only consider 100% matched reads
@@ -36,7 +36,7 @@ def genotype_results(df, thresh=0.02, part=0.8, n_boot=20, max_iter=100):
     df = df[df.pident == 100]
 
     # Run bootstrap EM algorithm on BLASTresults
-    P, alleles = bs.bootstrap_EM(df, part=part, n_boot=n_boot, \
+    P, alleles = bs.bootstrap_EM(df, kgene, part=part, n_boot=n_boot, \
                                  max_iter=max_iter, alpha=0.000001)
     return genotype_bootstrap(P, alleles, thresh=thresh)
 
@@ -45,15 +45,16 @@ if __name__ == "__main__":
 #    fname = 'KIR2DS1*0020101_KIR2DS1*0020103/KIR2DS1*0020101_KIR2DS1*0020103_simreads_4_blast.csv'
     fname = sys.argv[1]
     n_boot = sys.argv[2]
-    
+    kgene = sys.argv[3]
+
     # load input BLAST results
-    df = pd.read_csv(fname, header=-1)
+    df = pd.read_csv(fname, header=None)
     df.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch', 'gapopen',\
                   'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore']
     df = df[df.pident == 100]
-    
+
     # genotype BLAST results
-    sol = genotype_results(df, thresh=0.1, n_boot=n_boot)
+    sol = genotype_results(df, kgene, thresh=0.1, n_boot=n_boot)
 
     # write solution to file
     outname = '.'.join(fname.split('.')[:-1]) + '_genotype.tsv'

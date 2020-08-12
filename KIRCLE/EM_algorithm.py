@@ -5,13 +5,13 @@ Created on Tue Apr 16 21:32:44 2019
 
 @author: galengao
 """
+from __future__ import division
+
 import sys
-import warnings
+#import warnings
 
 import numpy as np
 import pandas as pd
-
-#import matplotlib.pyplot as plt
 
 def matrix_difference_objective(M0, M1):
     '''Compute sum of squared differences between each element of matrices M0
@@ -40,7 +40,7 @@ def run_EM(df, max_iter=1000, alpha=0.01):
     df.loc[:,'x'] = 1
     df0 = pd.pivot_table(df, values='x', index='sseqid', columns='qseqid', \
                          fill_value=0)
-    M = np.array(df0)
+    M = np.array(df0, dtype='f')
     M = M / sum(M)
         
     # iteratively step our state matrix forward until convergence is acheived
@@ -56,14 +56,15 @@ def run_EM(df, max_iter=1000, alpha=0.01):
         
     if i == max_iter-1:
         w = 'Warning: Convergence not attained after '+str(max_iter)+' steps!'
-        warnings.warn(w)
+#        warnings.warn(w)
+        print(w)
         
     return compute_belief_vector(N), df0.index
 
 if __name__ == "__main__":
 #    fname = '../Workspace/KIR2DL2_blast.csv'
-#    fname = 'KIR2DS2_GenotyperResults/KIR2DS2*0010101_KIR2DS2*0010108_simreads_42_blast.csv'
-    fname = sys.argv[1]
+    fname = 'KIR2DS2_GenotyperResults/KIR2DS2*0010101_KIR2DS2*0010108_simreads_42_blast.csv'
+#    fname = sys.argv[1]
     
     # load in the file to run
     df = pd.read_csv(fname, header=-1)
@@ -80,10 +81,10 @@ if __name__ == "__main__":
     
     
 #    # plot EM algorithm output in graphically appealing form
-#    import matplotlib.pyplot as plt
-#    plt.plot(N, 'bo')
-#    plt.xticks(range(len(alleles)), alleles, rotation=30, ha='right')
-#    plt.xlabel('Variant')
-#    plt.ylabel('Posterior Probability')
-#    plt.title('TCGA-OR-A5J2-10A; KIR3DL2', fontsize=20)
-#    plt.title('KIR2DS2_Heterozygous_Simulation', fontsize=20)
+    import matplotlib.pyplot as plt
+    plt.plot(N, 'bo')
+    plt.xticks(range(len(alleles)), alleles, rotation=30, ha='right')
+    plt.xlabel('Variant')
+    plt.ylabel('Posterior Probability')
+    plt.title('TCGA-OR-A5J2-10A; KIR3DL2', fontsize=20)
+    plt.title('KIR2DS2_Heterozygous_Simulation', fontsize=20)
