@@ -1,8 +1,8 @@
-# kir-genotyper
-Algorithm for calling KIR gene alleles from BLAST output generated from WXS or WGS reads.
+# KIR
+Algorithm for calling KIR alleles inference from Whole Exome Sequencing data.
 
 # Installation
-We recommend running KIR Genotyper using the Anaconda distribution of Python-3.4 or greater. Required python packages include numpy and pandas. For visualization purposes, matplotlib, seaborn, and sklearn are required.
+We recommend running KIR Genotyper using Anaconda with Python-3.4 or greater. Required python packages include numpy and pandas. For visualization purposes, matplotlib, seaborn, and sklearn are recommended.
 
 ```
 git clone --recursive https://github.com/gaog94/KIRCLE
@@ -10,7 +10,11 @@ git clone --recursive https://github.com/gaog94/KIRCLE
 
 Then add the path to the kir-genotyper files to PYTHONPATH.
 
-(((Include a part about setting up BLAST databases)))
+To construct BLAST databases, first download KIR nucleotide sequences in FASTA format from EBI (https://www.ebi.ac.uk/ipd/kir/download.html). Then construct BLAST databases using the following line:
+```
+Makeblastdb -in KIR_gen.fasta.txt -parse_seqids -dbtype nucl -out KIR_nuc_db
+```
+KIR_gen.fasta.txt represents the fasta file containing the sequences to be contained in the database, and KIR_nuc_db represents the name of the resulting BLAST database. BLAST may be obtained at https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/.
 
 # Description
 KIR Genotyper is an algorithm that takes BLAST output from Whole Exome Sequencing (WXS) or Whole Genome Sequencing (WGS) reads mapping to a particular KIR gene and predicts the allelic genotype of that KIR gene in that sample.
@@ -65,4 +69,4 @@ a1, a2 = gt.genotype_results(df, thresh=0.02, part=0.8, n_boot=20, max_iter=100)
 ``genotyper`` can be imported as a python package so that its constituent functions may be called within a python script.
 
 # Attributions
-This kir genotyper is developed and maintained by Galen Gao (galen.gao@utsw.edu) -- Bo Li lab -- UT Southwestern, Dallas, TX.
+This kir genotyper is developed and maintained by Galen Gao (galen.gao@utsouthwestern.edu) -- Bo Li lab -- UT Southwestern, Dallas, TX.
