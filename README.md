@@ -1,4 +1,4 @@
-# KIR
+# KIRCLE
 Algorithm for calling KIR alleles inference from Whole Exome Sequencing data.
 
 # Installation
