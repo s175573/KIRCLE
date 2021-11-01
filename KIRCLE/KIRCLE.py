@@ -6,8 +6,8 @@ Created on Sat Jun  8 18:10:43 2019
 @author: galengao
 """
 import os
-import sys
 import time
+import argparse
 
 import pandas as pd
 
@@ -15,7 +15,7 @@ from multiprocessing import Pool
 
 import bootstrapper as bs
 import genotyper as gt
-import generate_multiple_KIR_bams as genKIR
+import make_KIR_minibams as genKIR
 
 def convert_to_fasta(bamfile):
     '''Unpack reads from BAM file (xxx.bam) into FASTA file (xxx.fasta).
@@ -35,11 +35,12 @@ def run_blast(fastafile, kgene):
 
     return outfile
 
-def run_bootstrapper(scorefile, kgene, tag, part=0.8, nboot=100):
+def run_bootstrapper(scorefile, kgene, tag, part=0.5, nboot=100, alpha=1e-05, maxIter=1000):
     '''Run bootstrapped EM algorithm on each BLAST score file to generate KIR
     allele probabilities. Return probability file.'''
     if os.stat(scorefile).st_size != 0: # make sure BLAST file is not empty
-        P, alls = bs.bootstrap_BLAST_file(scorefile, kgene, pident=100, part=part, n_boot=nboot)
+        P, alls = bs.bootstrap_BLAST_file(scorefile, kgene, pident=100, part=part, \
+                                          n_boot=nboot, alpha=alpha, maxIter=maxIter)
         df_out = pd.DataFrame(P, index=alls, columns=[tag])
         df_out.to_csv(scorefile[:-4]+'_calls.tsv', sep='\t')
         return df_out
@@ -47,7 +48,7 @@ def run_bootstrapper(scorefile, kgene, tag, part=0.8, nboot=100):
         return pd.DataFrame([])
 
 
-def run_genotyper(df, thresh=0.2):
+def run_genotyper(df, thresh=0.25):
     '''Run KIR genotyper on each BLAST score file.'''
     if len(df) != 0: # make sure allele probability file is not empty
         sol = gt.genotype_bootstrap(df.values.ravel(), df.index, thresh=thresh)
@@ -68,7 +69,8 @@ def process_sample_multipleBAMs(bamfile):
     # run pipeline on the BAMfile
     fastafile = convert_to_fasta(bamfile)
     scorefile = run_blast(fastafile, kgene)
-    df_p = run_bootstrapper(scorefile, kgene, tag, part=part, nboot=nboot)
+    df_p = run_bootstrapper(scorefile, kgene, tag, part=part, nboot=nboot, \
+                            alpha=alpha, maxIter=maxIter)
     sol = run_genotyper(df_p, thresh=thresh)
 
     return df_p, sol
@@ -97,36 +99,67 @@ def write_param_outputs(tag, part, nboot, thresh):
             tsv.write(n + '\t' + str(p) + '\n')
 
 
-
-part = 0.25
-nboot = 100
-thresh = 0.2
-ncores = 15
 kgenes = ['KIR2DL1','KIR2DL2','KIR2DL3','KIR2DL4','KIR2DL5A','KIR2DL5B',\
           'KIR2DS1','KIR2DS2','KIR2DS3','KIR2DS4','KIR2DS5','KIR3DL1',\
           'KIR3DL2','KIR3DL3','KIR3DS1']
-f = '../hg38_KIR_locations_noKV.tsv'
 
-    
-# get cram file and other runtime parameters
-fname = sys.argv[1] # input CRAM file
-tag = sys.argv[2] # output prefix
-refLocations = sys.argv[3] # hg19 or hg38 KIR genomic coordinates
-part = float(sys.argv[4]) # fraction of reads in each bootstrap
-nboot = int(sys.argv[5]) # number of bootstraps
-thresh = float(sys.argv[6]) # threshold parameter for genotyper
-alpha = float(sys.argv[7]) # EM convergence criterion threshold
-max_iter = int(sys.argv[8]) # maximum number of iterations of EM algorithm
-ncores = int(sys.argv[9]) # number of cores to allocate
 
-print('Number of arguments:', len(sys.argv), 'arguments.')
-print('Argument List:', str(sys.argv))
+# parse runtime parameters, store as variables, and echo parameter values
+purpose = "Perform KIR alelle inference on a single CRAM or BAM using KIRCLE"
+parser = argparse.ArgumentParser(description=purpose)
+
+parser.add_argument('-i', '--input', type=str, help="CRAM or BAM input file")
+parser.add_argument('-o', '--tag', type=str, \
+                    help="Prefix to append to all output files")
+parser.add_argument('-l', '--loci', type=str, \
+                    default="../ref_files/hg38_KIR_locations_noKV.tsv", \
+                    help="File of KIR genomic coordinates/loci")
+parser.add_argument('-g', '--genome', choices=['hg19','hg38'], default='hg38', \
+                    help="Reference genome that input BAM/CRAM is aligned to")
+parser.add_argument('-p', '--partition', type=float, default=0.5, \
+                    help="Fraction of reads to include in each bootstrap")
+parser.add_argument('-b', '--bootstraps', type=int, default=100, \
+                    help="Number of bootstraps to perform")
+parser.add_argument('-t', '--threshold', type=float, default=0.25, \
+                    help="Threshold parameter for Genotyper algorithm")
+parser.add_argument('-a', '--alpha', type=float, default=0.00001, \
+                    help="Threshold for EM algorithm convergence")
+parser.add_argument('-m', '--maxIterations', type=int, default=1000, \
+                    help="Maximum # of iterations to run EM algorithm")
+parser.add_argument('-c', '--cores', type=int, default=1, \
+                    help="Number of cores to allocate for parallel processing")
+args = parser.parse_args()
+
+fname = args.input
+tag = args.tag
+refLocations = args.loci
+hg = args.genome
+part = args.partition
+nboot = args.bootstraps
+thresh = args.threshold
+alpha = args.alpha
+maxIter = args.maxIterations
+ncores = args.cores
+
+print("Input BAM/CRAM file: " + fname)
+print("Output prefix tag: " + tag)
+print("Reference file of KIR loci: " + refLocations)
+print("Human genome reference: " + hg)
+print(f"Fraction of reads in each bootstrap: {part}")
+print(f"Number of bootstraps to perform: {nboot}")
+print(f"Genotyper threshold parameter: {thresh}")
+print(f"Threshold for EM algorithm convergence: {alpha}")
+print(f"Maximum number of iterations to run EM algorithm: {maxIter}")
+print(f"Number of cores to allocate for parallel processing: {ncores}")
+print(' ')
+print(' ')
+
 
 # split CRAM into multiple BAMs per KIR gene
 start_time  = time.time()
-print(' ||| Splitting CRAM file ||| ')
-bamfiles = genKIR.split_master_bam(fname, tag, refLocations, hg='hg38')
-print('CRAM file split')
+print(' ||| Splitting input file ||| ')
+bamfiles = genKIR.split_master_bam(fname, tag, refLocations, hg=hg)
+print('Input file split')
 print("--- %s seconds  ---"  % (time.time() - start_time))
 print(' ')
 print(' ')
@@ -134,7 +167,7 @@ print(' ')
 # Serial processing alternative to parallel processing below
 #outputs = [process_sample_multipleBAMs(b) for b in bamfiles]
 
-# run town in parallel
+# Run KIRCLE in parallel
 print(' ||| Running Bootsrapper and Genotyper in Parallel... ||| ')
 p = Pool(ncores)
 outputs = p.map(process_sample_multipleBAMs, bamfiles)
@@ -143,7 +176,7 @@ print("--- %s seconds  ---"  % (time.time() - start_time))
 print(' ')
 print(' ')
 
-# write KIR output to file
+# write KIR outputs to file
 start_time  = time.time()
 print(' ||| Writing outputs to file... ||| ')
 write_KIR_outputs(tag, dfs, sols)

@@ -7,8 +7,7 @@ Created on Tue Apr 16 21:32:44 2019
 """
 from __future__ import division
 
-import sys
-#import warnings
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -32,7 +31,7 @@ def step(M):
     Z = np.dot(M.T, V)
     return (M.T * V).T / Z
 
-def run_EM(df, max_iter=1000, alpha=0.01):
+def run_EM(df, maxIter=1000, alpha=1e-5):
     '''Run Expectation-Maximization algorithm until convergence is achieved  at
     level alpha or a maximum of n steps. Returns final belief vector after
     convergence and list of allele names it maps to'''
@@ -44,7 +43,7 @@ def run_EM(df, max_iter=1000, alpha=0.01):
     M = M / sum(M)
         
     # iteratively step our state matrix forward until convergence is acheived
-    for i in range(max_iter):
+    for i in range(maxIter):
         N = step(M)
         
         # if we achieve convergence before our step-limit, exit
@@ -54,37 +53,8 @@ def run_EM(df, max_iter=1000, alpha=0.01):
         # update state matrix
         M = N
         
-    if i == max_iter-1:
-        w = 'Warning: Convergence not attained after '+str(max_iter)+' steps!'
-#        warnings.warn(w)
-        print(w)
+    if i == maxIter-1:
+        w = 'Warning: Convergence not attained after '+str(maxIter)+' steps!'
+        warnings.warn(w)
         
     return compute_belief_vector(N), df0.index
-
-if __name__ == "__main__":
-#    fname = '../Workspace/KIR2DL2_blast.csv'
-    fname = 'KIR2DS2_GenotyperResults/KIR2DS2*0010101_KIR2DS2*0010108_simreads_42_blast.csv'
-#    fname = sys.argv[1]
-    
-    # load in the file to run
-    df = pd.read_csv(fname, header=-1)
-    df.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch', 'gapopen',\
-                  'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore']
-    df = df[df.pident == 100]
-    
-    # run expectation maximization
-    N, alleles = run_EM(df, max_iter=1000, alpha=0.0000001)
-    
-    # write results to file
-#    outname = '_'.join(fname.split('_')[:-1]) + '_EMout.csv'
-#    pd.DataFrame(N, index=alleles, columns=['p']).to_csv(outname)
-    
-    
-#    # plot EM algorithm output in graphically appealing form
-    import matplotlib.pyplot as plt
-    plt.plot(N, 'bo')
-    plt.xticks(range(len(alleles)), alleles, rotation=30, ha='right')
-    plt.xlabel('Variant')
-    plt.ylabel('Posterior Probability')
-    plt.title('TCGA-OR-A5J2-10A; KIR3DL2', fontsize=20)
-    plt.title('KIR2DS2_Heterozygous_Simulation', fontsize=20)

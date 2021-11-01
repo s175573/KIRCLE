@@ -5,10 +5,8 @@ Created on Fri Feb  1 00:19:01 2019
 
 @author: galengao
 
-Simple script that extracts all reads mapping to individual KIR genes.
+Script that extracts all reads mapping to individual KIR genes.
 """
-import sys
-import os
 
 import pysam
 
@@ -50,8 +48,8 @@ def handle_overlapping_intervals(df):
     return pd.concat(dfs)
 
 def split_master_bam(infile, outname, refLocations, hg='hg19'):
-    '''Given input bamfile, breaks it into multiple smaller bam files with only
-    reads mapping to each KIR gene. Specify if bam is hg19 vs hg38.'''
+    '''Given input bam/cram/sam, break it into multiple minibam files with 
+    reads mapping to only 1 KIR gene apiece. Specify if bam is hg19 vs hg38.'''
     # read in master bam/cram/sam infile
     if infile[-4:] == '.bam':
         b = pysam.AlignmentFile(infile, "rb")
@@ -81,9 +79,10 @@ def split_master_bam(infile, outname, refLocations, hg='hg19'):
                     c = 'chr19'
                 elif c == 'GL000209.1':
                     c = 'chr19_gl000209_random'
-        # hg38 -- drop preceding 'chr' from contig names
+        # hg38 -- drop preceding 'chr' from contig names if 'chr19' not in bam
         elif hg == 'hg38':
-            c = c[3:]
+            if '19' in b.references:
+                c = c[3:]
 
         # write region's reads to gene-level miniBAM file
         fname =  outname + '_' + i + '.bam'
@@ -113,10 +112,3 @@ def split_master_bam(infile, outname, refLocations, hg='hg19'):
 
     # return filenames of newly made miniBAMs
     return newBAMfiles.keys()
-
-if __name__ == "__main__":
-    infile = sys.argv[1]
-    outname = sys.argv[2]
-    refLocations = sys.argv[3]
-
-    split_master_bam(infile, outname, f, hg='hg38')
